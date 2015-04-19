@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NuProj.Tests.Infrastructure;
+using NuProj.Tests.NuGet;
 using Xunit;
 
 namespace NuProj.Tests
 {
     public class ReferenceTests
     {
-        [Fact]
+        //[Fact]
         public async Task References_PackagedWithCopyLocal()
         {
             var package = await Scenario.RestoreAndBuildSinglePackageAsync();
@@ -20,7 +21,7 @@ namespace NuProj.Tests
             Assert.Null(package.GetFile("A4.dll")); // ExcludeFromNuPkg=true
         }
 
-        [Fact]
+        //[Fact]
         public async Task References_MultipleFrameworks_ReferenceAll()
         {
             var package = await Scenario.RestoreAndBuildSinglePackageAsync("References_MultipleFrameworks", "ReferenceAll");
@@ -38,7 +39,7 @@ namespace NuProj.Tests
             Assert.Equal(expectedFileNames, files);
         }
 
-        [Fact]
+        //[Fact]
         public async Task References_MultipleFrameworks_ReferenceNet451()
         {
             var package = await Scenario.RestoreAndBuildSinglePackageAsync("References_MultipleFrameworks", "ReferenceNet451");
@@ -53,7 +54,7 @@ namespace NuProj.Tests
             Assert.Equal(expectedFileNames, files);
         }
 
-        [Theory]
+        //[Theory]
         [InlineData("PackageToBuild", new[] { @"build\Tool.dll" }, new string[0])]
         [InlineData("PackageToLib", new[] { @"lib\net45\Tool.dll" }, new string[0])]
         [InlineData("PackageToRoot", new[] { @"Tool.dll", @"Tool.pdb" }, new string[0])]

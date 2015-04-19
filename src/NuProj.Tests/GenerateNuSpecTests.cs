@@ -5,6 +5,7 @@ using Microsoft.Build.Utilities;
 using NuGet;
 using NuProj.Tasks;
 using NuProj.Tests.Infrastructure;
+using NuProj.Tests.NuGet;
 using Xunit;
 
 namespace NuProj.Tests

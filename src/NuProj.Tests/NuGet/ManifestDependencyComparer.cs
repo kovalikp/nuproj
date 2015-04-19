@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NuGet;
 
-namespace NuProj.Tests.Infrastructure
+namespace NuProj.Tests.NuGet
 {
     public class ManifestDependencyComparer : IEqualityComparer<ManifestDependency>
     {

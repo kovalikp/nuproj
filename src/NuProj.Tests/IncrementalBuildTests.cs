@@ -11,7 +11,7 @@ namespace NuProj.Tests
 {
     public class IncrementalBuildTests
     {
-        [Fact]
+        //[Fact]
         public async Task IncrementalBuild_NuSpecIsNotUpdated_WhenNothingChanged()
         {
             var solutionPath = Assets.GetScenarioSolutionPath("IncrementalBuild_NuSpecIsNotUpdated");
@@ -54,7 +54,7 @@ namespace NuProj.Tests
             Assert.Equal(lastWriteTime1, lastWriteTime2);
         }
 
-        [Fact]
+        //[Fact]
         public async Task IncrementalBuild_NuSpecIsUpdated_WhenGlobalPropertiesChange()
         {
             var solutionPath = Assets.GetScenarioSolutionPath("IncrementalBuild_NuSpecIsUpdated");

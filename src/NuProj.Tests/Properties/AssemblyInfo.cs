@@ -37,4 +37,6 @@ using Xunit;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 // Disable xUnit paralellism settings, because multiple tests can work with same scenario.
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+///[assembly: CollectionBehavior(DisableTestParallelization = true)]
+//[assembly: CollectionBehavior(MaxParallelThreads = 5)]
+//[assembly:CollectionBehavior(CollectionBehavior.CollectionPerClass)]

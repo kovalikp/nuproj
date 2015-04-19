@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using NuGet;
+using NuProj.Tests.Infrastructure;
 
-namespace NuProj.Tests.Infrastructure
+namespace NuProj.Tests.NuGet
 {
     public class ManifestDependencySetComparer : IEqualityComparer<ManifestDependencySet>
     {

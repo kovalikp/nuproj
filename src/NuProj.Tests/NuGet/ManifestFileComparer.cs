@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using NuGet;
 
-namespace NuProj.Tests.Infrastructure
+namespace NuProj.Tests.NuGet
 {
     public class ManifestFileComparer : IEqualityComparer<ManifestFile>
     {

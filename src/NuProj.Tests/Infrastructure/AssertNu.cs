@@ -14,7 +14,7 @@ namespace NuProj.Tests.Infrastructure
         /// <summary>
         /// Asserts that a build completed successfully and without logging any errors.
         /// </summary>
-        public static void SuccessfulBuild(MSBuild.BuildResultAndLogs result)
+        public static void SuccessfulBuild(MSBuildResultAndLogs result)
         {
             result.AssertSuccessfulBuild();
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet;
 
-namespace NuProj.Tests.Infrastructure
+namespace NuProj.Tests.NuGet
 {
     public class PackageDependencySetComparer : IEqualityComparer<PackageDependencySet>
     {

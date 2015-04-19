@@ -12,7 +12,7 @@ namespace NuProj.Tests.Infrastructure
         {
             var tempPath = Path.GetTempPath();
             var randomFileName = Path.GetRandomFileName();
-            var projectDirectory = Path.Combine(tempPath, randomFileName);
+            var projectDirectory = Path.Combine(tempPath, "NuProj.Tests", randomFileName);
             Directory.CreateDirectory(projectDirectory);
             nuProj.FullPath = Path.Combine(projectDirectory, "test.nuproj");
             return nuProj;
@@ -51,6 +51,11 @@ namespace NuProj.Tests.Infrastructure
         public static string GetNuPkgPath(this Project nuProj)
         {
             return nuProj.GetPropertyValue("NuGetOutputPath");
+        }
+
+        public static string GetNuSpecPath(this Project nuProj)
+        {
+            return nuProj.GetPropertyValue("NuSpecPath");
         }
     }
 }

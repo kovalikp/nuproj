@@ -35,9 +35,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.Build, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Build.Framework, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.Build.Utilities.v12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build.Tasks.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Build.Utilities.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
       <Private>True</Private>
@@ -71,22 +72,39 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DependencyTests.cs" />
+    <Compile Include="Dependency_Content_IsNotFiltered.cs" />
+    <Compile Include="Dependency_DirectDependencies_AreNotPackaged.cs" />
+    <Compile Include="Dependency_IndirectDependencies_AreNotPackaged.cs" />
+    <Compile Include="Dependency_IsBuilt_WhenNotBuildingInsideVisualStudio.cs" />
+    <Compile Include="Dependency_IsNotBuilt_WhenBuildingInsideVisualStudio.cs" />
+    <Compile Include="Dependency_MultipleFrameworks_AreResolved.cs" />
+    <Compile Include="Dependency_NoDependencies_Fails.cs" />
+    <Compile Include="Dependency_Tools_IsNotFiltered.cs" />
+    <Compile Include="Dependency_Versions_AreAggregated.cs" />
     <Compile Include="GenerateNuSpecTests.cs" />
     <Compile Include="IncrementalBuildTests.cs" />
+    <Compile Include="IncrementalBuild_NuSpecIsNotUpdated.cs" />
+    <Compile Include="IncrementalBuild_NuSpecIsUpdated.cs" />
     <Compile Include="Infrastructure\AssertNu.cs" />
     <Compile Include="Infrastructure\Assets.cs" />
     <Compile Include="BasicTests.cs" />
     <Compile Include="Infrastructure\Extensions.cs" />
-    <Compile Include="Infrastructure\ManifestDependencyComparer.cs" />
-    <Compile Include="Infrastructure\ManifestDependencySetComparer.cs" />
-    <Compile Include="Infrastructure\ManifestFileComparer.cs" />
-    <Compile Include="Infrastructure\ManifestFrameworkAssemblyComparer.cs" />
-    <Compile Include="Infrastructure\ManifestReferenceComparer.cs" />
-    <Compile Include="Infrastructure\ManifestReferenceSetComparer.cs" />
-    <Compile Include="Infrastructure\PackageDependencyComparer.cs" />
-    <Compile Include="Infrastructure\PackageDependencySetComparer.cs" />
+    <Compile Include="Infrastructure\IScenario.cs" />
+    <Compile Include="Infrastructure\MSBuildResultAndLogs.cs" />
+    <Compile Include="Infrastructure\ScenarioExtensions.cs" />
+    <Compile Include="NuGet\Extensions.cs" />
+    <Compile Include="NuGet\ManifestDependencyComparer.cs" />
+    <Compile Include="NuGet\ManifestDependencySetComparer.cs" />
+    <Compile Include="NuGet\ManifestFileComparer.cs" />
+    <Compile Include="NuGet\ManifestFrameworkAssemblyComparer.cs" />
+    <Compile Include="NuGet\ManifestReferenceComparer.cs" />
+    <Compile Include="NuGet\ManifestReferenceSetComparer.cs" />
+    <Compile Include="NuGet\PackageDependencyComparer.cs" />
+    <Compile Include="NuGet\PackageDependencySetComparer.cs" />
+    <Compile Include="Infrastructure\ScenarioBase.cs" />
     <Compile Include="Infrastructure\Scenario.cs" />
     <Compile Include="Infrastructure\AssertTaskItem.cs" />
+    <Compile Include="NuSpecTemplate_GeneratesWarnings.cs" />
     <Compile Include="PackageIdentityTests.cs" />
     <Compile Include="Infrastructure\MSBuild.cs" />
     <Compile Include="Infrastructure\NuGetHelper.cs" />
@@ -94,7 +112,13 @@
     <Compile Include="Infrastructure\ProjectBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadPackagesConfigTests.cs" />
+    <Compile Include="References_MultipleFrameworks.cs" />
+    <Compile Include="References_PackageDirectory.cs" />
+    <Compile Include="References_PackagedWithCopyLocal.cs" />
     <Compile Include="ReferenceTests.cs" />
+    <Compile Include="Task_ReadPackagesConfig_NoConfig.cs" />
+    <Compile Include="Task_ReadPackagesConfig_ParseDirectoryConfig.cs" />
+    <Compile Include="Task_ReadPackagesConfig_ParseProjectoryConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Infrastructure\Assets\FromTemplate.nuproj" />

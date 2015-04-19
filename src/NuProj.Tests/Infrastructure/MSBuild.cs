@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
-
 using Xunit;
 
 namespace NuProj.Tests.Infrastructure
 {
     public static class MSBuild
     {
-        public static Task<BuildResultAndLogs> RebuildAsync(string projectPath, string projectName = null, IDictionary<string, string> properties = null)
+        public static Task<MSBuildResultAndLogs> RebuildAsync(string projectPath, string projectName = null, IDictionary<string, string> properties = null)
         {
 
             var target = string.IsNullOrEmpty(projectName) ? "Rebuild" : projectName.Replace('.', '_') + ":Rebuild";
             return MSBuild.ExecuteAsync(projectPath, new[] { target }, properties);
         }
 
-        public static Task<BuildResultAndLogs> ExecuteAsync(string projectPath, string targetToBuild, IDictionary<string, string> properties = null)
+        public static Task<MSBuildResultAndLogs> ExecuteAsync(string projectPath, string targetToBuild, IDictionary<string, string> properties = null)
         {
             return MSBuild.ExecuteAsync(projectPath, new[] { targetToBuild }, properties);
         }
@@ -33,7 +32,7 @@ namespace NuProj.Tests.Infrastructure
         /// <param name="targetsToBuild">The targets to build. If not specified, the project's default target will be invoked.</param>
         /// <param name="properties">The optional global properties to pass to the project. May come from the <see cref="MSBuild.Properties"/> static class.</param>
         /// <returns>A task whose result is the result of the build.</returns>
-        public static async Task<BuildResultAndLogs> ExecuteAsync(string projectPath, string[] targetsToBuild = null, IDictionary<string, string> properties = null)
+        public static async Task<MSBuildResultAndLogs> ExecuteAsync(string projectPath, string[] targetsToBuild = null, IDictionary<string, string> properties = null)
         {
             targetsToBuild = targetsToBuild ?? new string[0];
 
@@ -54,7 +53,10 @@ namespace NuProj.Tests.Infrastructure
                 buildManager.BeginBuild(parameters);
                 try
                 {
-                    var requestData = new BuildRequestData(projectPath, properties ?? Properties.Default, null, targetsToBuild, null);
+                    var hostServices = new HostServices();
+                    hostServices.SetNodeAffinity(projectPath, NodeAffinity.OutOfProc);
+                    //hostServices = null;
+                    var requestData = new BuildRequestData(projectPath, properties ?? Properties.Default, null, targetsToBuild, hostServices);
                     var submission = buildManager.PendBuildRequest(requestData);
                     result = await submission.ExecuteAsync();
                 }
@@ -64,7 +66,7 @@ namespace NuProj.Tests.Infrastructure
                 }
             }
 
-            return new BuildResultAndLogs(result, logger.LogEvents, logLines);
+            return new MSBuildResultAndLogs(result, logger.LogEvents, logLines);
         }
 
         /// <summary>
@@ -73,7 +75,7 @@ namespace NuProj.Tests.Infrastructure
         /// <param name="projectInstance">The project to build.</param>
         /// <param name="targetsToBuild">The targets to build. If not specified, the project's default target will be invoked.</param>
         /// <returns>A task whose result is the result of the build.</returns>
-        public static async Task<BuildResultAndLogs> ExecuteAsync(ProjectInstance projectInstance, params string[] targetsToBuild)
+        public static async Task<MSBuildResultAndLogs> ExecuteAsync(ProjectInstance projectInstance, params string[] targetsToBuild)
         {
             targetsToBuild = (targetsToBuild == null || targetsToBuild.Length == 0) ? projectInstance.DefaultTargets.ToArray() : targetsToBuild;
 
@@ -81,6 +83,7 @@ namespace NuProj.Tests.Infrastructure
             var logLines = new List<string>();
             var parameters = new BuildParameters
             {
+                //DisableInProcNode = true,
                 Loggers = new List<ILogger>
                 {
                     new ConsoleLogger(LoggerVerbosity.Detailed, logLines.Add, null, null),
@@ -94,6 +97,9 @@ namespace NuProj.Tests.Infrastructure
                 buildManager.BeginBuild(parameters);
                 try
                 {
+                    //var hostServices = new HostServices();
+                    //hostServices.SetNodeAffinity(projectInstance.FullPath, NodeAffinity.OutOfProc);
+                    //hostServices = null;
                     var requestData = new BuildRequestData(projectInstance, targetsToBuild);
                     var submission = buildManager.PendBuildRequest(requestData);
                     result = await submission.ExecuteAsync();
@@ -104,7 +110,7 @@ namespace NuProj.Tests.Infrastructure
                 }
             }
 
-            return new BuildResultAndLogs(result, logger.LogEvents, logLines);
+            return new MSBuildResultAndLogs(result, logger.LogEvents, logLines);
         }
 
         private static Task<BuildResult> ExecuteAsync(this BuildSubmission submission)
@@ -138,49 +144,6 @@ namespace NuProj.Tests.Infrastructure
             /// </summary>
             public static readonly ImmutableDictionary<string, string> BuildingInsideVisualStudio = Default
                 .Add("BuildingInsideVisualStudio", "true");
-        }
-
-        public class BuildResultAndLogs
-        {
-            internal BuildResultAndLogs(BuildResult result, List<BuildEventArgs> events, IReadOnlyList<string> logLines)
-            {
-                Result = result;
-                LogEvents = events;
-                LogLines = logLines;
-            }
-
-            public BuildResult Result { get; private set; }
-
-            public List<BuildEventArgs> LogEvents { get; private set; }
-
-            public IEnumerable<BuildErrorEventArgs> ErrorEvents
-            {
-                get { return LogEvents.OfType<BuildErrorEventArgs>(); }
-            }
-
-            public IEnumerable<BuildWarningEventArgs> WarningEvents
-            {
-                get { return LogEvents.OfType<BuildWarningEventArgs>(); }
-            }
-
-            public IReadOnlyList<string> LogLines { get; private set; }
-
-            public string EntireLog
-            {
-                get { return string.Join(string.Empty, LogLines); }
-            }
-
-            public void AssertSuccessfulBuild()
-            {
-                Assert.False(ErrorEvents.Any(), ErrorEvents.Select(e => e.Message).FirstOrDefault());
-                Assert.Equal(BuildResultCode.Success, Result.OverallResult);
-            }
-
-            public void AssertUnsuccessfulBuild()
-            {
-                Assert.Equal(BuildResultCode.Failure, Result.OverallResult);
-                Assert.True(ErrorEvents.Any(), ErrorEvents.Select(e => e.Message).FirstOrDefault());
-            }
         }
 
         private class EventLogger : ILogger
