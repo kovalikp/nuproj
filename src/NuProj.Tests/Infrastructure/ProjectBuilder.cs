@@ -10,9 +10,7 @@ namespace NuProj.Tests.Infrastructure
     {
         public static ProjectRootElement AssignNuProjDirectory(this ProjectRootElement nuProj)
         {
-            var tempPath = Path.GetTempPath();
-            var randomFileName = Path.GetRandomFileName();
-            var projectDirectory = Path.Combine(tempPath, "NuProj.Tests", randomFileName);
+            var projectDirectory = MSBuild.GetRandomTestOutputDirectory();
             Directory.CreateDirectory(projectDirectory);
             nuProj.FullPath = Path.Combine(projectDirectory, "test.nuproj");
             return nuProj;

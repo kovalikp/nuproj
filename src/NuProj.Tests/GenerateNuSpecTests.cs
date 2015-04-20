@@ -16,9 +16,8 @@ namespace NuProj.Tests
 
         public GenerateNuSpecTests()
         {
-            var tempPath = Path.GetTempPath();
-            var randomFileName = Path.GetRandomFileName();
-            _projectDirectory = Path.Combine(tempPath, randomFileName);
+            _projectDirectory = MSBuild.GetRandomTestOutputDirectory();
+            Directory.CreateDirectory(_projectDirectory);
         }
 
         public void Dispose()

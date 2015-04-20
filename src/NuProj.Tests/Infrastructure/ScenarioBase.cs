@@ -16,9 +16,7 @@ namespace NuProj.Tests.Infrastructure
         protected ScenarioBase()
         {
             Name = GetType().Name;
-            var tempPath = Path.GetTempPath();
-            var randomFileName = Path.GetRandomFileName();
-            _projectDirectory = Path.Combine(tempPath, "NuProj.Tests", randomFileName);
+            _projectDirectory = MSBuild.GetRandomTestOutputDirectory();
             Properties = MSBuild.Properties.Default;
             Directory.CreateDirectory(_projectDirectory);
         }

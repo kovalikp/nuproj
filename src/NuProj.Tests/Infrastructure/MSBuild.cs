@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Build.Evaluation;
@@ -13,6 +14,13 @@ namespace NuProj.Tests.Infrastructure
 {
     public static class MSBuild
     {
+        public static string GetRandomTestOutputDirectory()
+        {
+            var tempPath = Path.GetTempPath();
+            var randomFileName = Path.GetRandomFileName();
+            return Path.Combine(tempPath, "NuProj.Tests", randomFileName);
+        }
+        
         public static Task<MSBuildResultAndLogs> RebuildAsync(string projectPath, string projectName = null, IDictionary<string, string> properties = null)
         {
 
@@ -40,6 +48,7 @@ namespace NuProj.Tests.Infrastructure
             var logLines = new List<string>();
             var parameters = new BuildParameters
             {
+                DisableInProcNode = true,
                 Loggers = new List<ILogger>
                 {
                     new ConsoleLogger(LoggerVerbosity.Detailed, logLines.Add, null, null),
@@ -53,10 +62,7 @@ namespace NuProj.Tests.Infrastructure
                 buildManager.BeginBuild(parameters);
                 try
                 {
-                    var hostServices = new HostServices();
-                    hostServices.SetNodeAffinity(projectPath, NodeAffinity.OutOfProc);
-                    //hostServices = null;
-                    var requestData = new BuildRequestData(projectPath, properties ?? Properties.Default, null, targetsToBuild, hostServices);
+                    var requestData = new BuildRequestData(projectPath, properties ?? Properties.Default, null, targetsToBuild, null);
                     var submission = buildManager.PendBuildRequest(requestData);
                     result = await submission.ExecuteAsync();
                 }
@@ -83,7 +89,6 @@ namespace NuProj.Tests.Infrastructure
             var logLines = new List<string>();
             var parameters = new BuildParameters
             {
-                //DisableInProcNode = true,
                 Loggers = new List<ILogger>
                 {
                     new ConsoleLogger(LoggerVerbosity.Detailed, logLines.Add, null, null),
@@ -97,9 +102,6 @@ namespace NuProj.Tests.Infrastructure
                 buildManager.BeginBuild(parameters);
                 try
                 {
-                    //var hostServices = new HostServices();
-                    //hostServices.SetNodeAffinity(projectInstance.FullPath, NodeAffinity.OutOfProc);
-                    //hostServices = null;
                     var requestData = new BuildRequestData(projectInstance, targetsToBuild);
                     var submission = buildManager.PendBuildRequest(requestData);
                     result = await submission.ExecuteAsync();
