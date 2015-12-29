@@ -109,7 +109,7 @@
   <Target Name="EstablishNuGetPaths" DependsOnTargets="$(VersionDependsOn)">
   <PropertyGroup>
     <NuGetOutputPath>$(TargetPath)</NuGetOutputPath>
-    <NuGetSymbolsOutputPath>$(TargetDir)$(TargetName).symbols.$(TargetExt)</NuGetSymbolsOutputPath>
+    <NuGetSymbolsOutputPath>$(TargetDir)$(TargetName).symbols$(TargetExt)</NuGetSymbolsOutputPath>
   </PropertyGroup>
   </Target>
 
@@ -581,7 +581,9 @@
                     Dependencies="@(Dependency)"
                     References="@(Reference)"
                     FrameworkReferences="@(FrameworkReference)"
-                    Files="@(PackageFile)"/>
+                    Files="@(PackageFile)">
+      <Output TaskParameter="FilesWritten" ItemName="FileWrites"/>
+    </GenerateNuSpec>
   </Target>
 
   <!--
@@ -616,6 +618,14 @@
                NuSpecPath="$(NuSpecPath)"
                Properties="$(NuSpecProperties)"
                />
+    
+      
+    <!-- It would be better if WrittenFiles would be output property of NuGetPack task. -->  
+    <ItemGroup>
+      <FileWrites Include="$(NuGetOutputPath)" />
+      <FileWrites Include="$(NuGetSymbolsOutputPath)" Condition=" '$(GenerateSymbolPackage)' == 'true' " />
+    </ItemGroup>
+  
   </Target>
 
   <!--
@@ -977,56 +987,6 @@
     =================================================================================================================== -->
 
   <PropertyGroup>
-    <CleanDependsOn>
-      BeforeClean;
-      AssignProjectConfiguration;
-      EstablishNuGetPaths;
-      AfterClean
-    </CleanDependsOn>
-  </PropertyGroup>
-
-  <Target Name="Clean" DependsOnTargets="$(CleanDependsOn)">
-
-    <!-- We should also clear our references.
-
-         Note: We should forward calling the Clear target when building from the command line.
-               Assuming, of course, we're not suppressing building project references. -->
-
-    <MSBuild Targets="Clean"
-             Condition="'$(BuildProjectReferences)' == 'true'"
-             Projects="@(ProjectReferenceWithConfiguration)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)" />
-
-    <!-- Delete our outputs and intermediates. -->
-
-    <ItemGroup>
-      <_ToBeDeleted Include="$(NuSpecPath)" />
-      <_ToBeDeleted Include="$(NuGetOutputPath)" />
-      <_ToBeDeleted Include="$(NuGetSymbolsOutputPath)" />
-    </ItemGroup>
-    <Delete Files="@(_ToBeDeleted)" />
-
-  </Target>
-  
-  <!--
-    ============================================================
-                                        BeforeClean
-
-    Redefine this target in your project in order to run tasks just before Clean.
-    ============================================================
-    -->
-  <Target Name="BeforeClean"/>
-
-  <!--
-    ============================================================
-                                        AfterClean
-
-    Redefine this target in your project in order to run tasks just after Clean.
-    ============================================================
-    -->
-  <Target Name="AfterClean"/>
-  
-  <PropertyGroup>
     <BuildDependsOn>
       BeforeBuild;
       CoreBuild;
@@ -1065,7 +1025,8 @@
     -->
   <PropertyGroup>
     <CoreBuildDependsOn>
-      CreatePackage
+      CreatePackage;
+      IncrementalClean
     </CoreBuildDependsOn>
   </PropertyGroup>
   
