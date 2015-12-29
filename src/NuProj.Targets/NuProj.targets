@@ -2,9 +2,7 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" TreatAsLocalProperty="OutDir;IntermediateOutputPath" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project="$(CustomBeforeNuProjTargets)" Condition="'$(CustomBeforeNuProjTargets)' != '' and Exists('$(CustomBeforeNuProjTargets)')"/>
-
-  <Import Project="$(MSBuildProjectFullPath).user" Condition="Exists('$(MSBuildProjectFullPath).user')"/>
-
+  
   <PropertyGroup>
     <NuProjRulesDir>$(MSBuildThisFileDirectory)Rules\</NuProjRulesDir>
   </PropertyGroup>
@@ -44,57 +42,11 @@
     <DefaultContentType>Content</DefaultContentType>
   </PropertyGroup>
 
-  <!-- Set output and intermediate output properties. -->
   <PropertyGroup>
-    <OutputPath Condition="'$(OutputPath)' != '' and !HasTrailingSlash('$(OutputPath)')">$(OutputPath)\</OutputPath>
-
-    <OutDirWasSpecified Condition=" '$(OutDir)'!='' and '$(OutDirWasSpecified)'=='' ">true</OutDirWasSpecified>
-    <OutDir Condition="'$(OutDir)' == ''">$(OutputPath)</OutDir>
-    <OutDir Condition="'$(OutDir)' != '' and !HasTrailingSlash('$(OutDir)')">$(OutDir)\</OutDir>
-
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">obj\</BaseIntermediateOutputPath>
-    <BaseIntermediateOutputPath Condition="!HasTrailingSlash('$(BaseIntermediateOutputPath)')">$(BaseIntermediateOutputPath)\</BaseIntermediateOutputPath>
-
-    <IntermediateOutputPathWasSpecified Condition=" '$(IntermediateOutputPath)'!='' and '$(IntermediateOutputPathWasSpecified)'=='' ">true</IntermediateOutputPathWasSpecified>
-    <IntermediateOutputPath Condition="$(IntermediateOutputPath) == ''">$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
-    <IntermediateOutputPath Condition="!HasTrailingSlash('$(IntermediateOutputPath)')">$(IntermediateOutputPath)\</IntermediateOutputPath>
+    <OutputType>package</OutputType>
+    <TargetExt>.nupkg</TargetExt>
+    <AssemblyName>$(Id).$(Version)</AssemblyName>
   </PropertyGroup>
-
-  <!-- For projects that want a per-project output directory, update OutDir and IntermediateOutputPath to include the project name. -->
-  <PropertyGroup>
-    <ProjectName Condition=" '$(ProjectName)' == '' ">$(MSBuildProjectName)</ProjectName>
-    <OutDir Condition="'$(OutDir)' != '' and '$(OutDirWasSpecified)' == 'true' and '$(GenerateProjectSpecificOutputFolder)' == 'true'">$(OutDir)$(ProjectName)\</OutDir>
-    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' != '' and '$(IntermediateOutputPathWasSpecified)' == 'true' and '$(GenerateProjectSpecificOutputFolder)' == 'true'">$(IntermediateOutputPath)$(ProjectName)\</IntermediateOutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <TargetDir Condition="'$(OutDir)' != ''">$([MSBuild]::Escape($([System.IO.Path]::GetFullPath(`$([System.IO.Path]::Combine(`$(MSBuildProjectDirectory)`, `$(OutDir)`))`))))</TargetDir>
-  </PropertyGroup>
-
-  <!--
-      NUSPEC PATH
-  -->
-
-  <PropertyGroup>
-    <NuSpecPath>$(IntermediateOutputPath)$(Id).nuspec</NuSpecPath>
-  </PropertyGroup>
-
-  <!--
-      OUTPUT PATHS
-
-      These properties aren't passed to NuGet.exe - they're implicit. However, we need to know the output paths
-      at several occasions (e.g. incremental build or clean up) so we want a central spot to capture those.
-
-      We set these properties in a Target so that other targets that determine what $(Version)
-      should be can run first.
-  -->
-
-  <Target Name="EstablishNuGetPaths" DependsOnTargets="$(VersionDependsOn)">
-  <PropertyGroup>
-    <NuGetOutputPath>$(TargetDir)$(Id).$(Version).nupkg</NuGetOutputPath>
-    <NuGetSymbolsOutputPath>$(TargetDir)$(Id).$(Version).symbols.nupkg</NuGetSymbolsOutputPath>
-  </PropertyGroup>
-  </Target>
 
   <!--
       Properties relevant to Visual Studio:
@@ -127,6 +79,39 @@
          to disable that. -->
     <BuildProjectReferences Condition="'$(BuildProjectReferences)' == ''">true</BuildProjectReferences>
   </PropertyGroup>
+  
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+
+  <!-- For projects that want a per-project output directory, update OutDir and IntermediateOutputPath to include the project name. -->
+  <PropertyGroup>
+    <IntermediateOutputPathWasSpecified Condition=" '$(IntermediateOutputPath)'!='' and '$(IntermediateOutputPathWasSpecified)'=='' ">true</IntermediateOutputPathWasSpecified>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' != '' and '$(IntermediateOutputPathWasSpecified)' == 'true' and '$(GenerateProjectSpecificOutputFolder)' == 'true'">$(IntermediateOutputPath)$(ProjectName)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <!--
+      NUSPEC PATH
+  -->
+
+  <PropertyGroup>
+    <NuSpecPath>$(IntermediateOutputPath)$(Id).nuspec</NuSpecPath>
+  </PropertyGroup>
+
+  <!--
+      OUTPUT PATHS
+
+      These properties aren't passed to NuGet.exe - they're implicit. However, we need to know the output paths
+      at several occasions (e.g. incremental build or clean up) so we want a central spot to capture those.
+
+      We set these properties in a Target so that other targets that determine what $(Version)
+      should be can run first.
+  -->
+
+  <Target Name="EstablishNuGetPaths" DependsOnTargets="$(VersionDependsOn)">
+  <PropertyGroup>
+    <NuGetOutputPath>$(TargetPath)</NuGetOutputPath>
+    <NuGetSymbolsOutputPath>$(TargetDir)$(TargetName).symbols.$(TargetExt)</NuGetSymbolsOutputPath>
+  </PropertyGroup>
+  </Target>
 
   <!--
       MSBuildAllProjects is used to keep track of all projects the build depends on.
