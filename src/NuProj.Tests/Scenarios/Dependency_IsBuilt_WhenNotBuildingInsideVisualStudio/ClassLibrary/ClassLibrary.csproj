@@ -48,13 +48,13 @@
   <Target Name="BeforeBuild">
   </Target>
   -->
-  <Target Name="Clean">
+  <Target Name="AfterClean">
     <Warning Text="CsProj dependency Target Called: Clean" />
   </Target>
-  <Target Name="Build">
+  <Target Name="AfterBuild">
     <Warning Text="CsProj dependency Target Called: Build" />
   </Target>
-  <Target Name="Rebuild">
+  <Target Name="AfterRebuild">
     <Warning Text="CsProj dependency Target Called: Rebuild" />
   </Target>
 

@@ -45,7 +45,8 @@
   <PropertyGroup>
     <OutputType>package</OutputType>
     <TargetExt>.nupkg</TargetExt>
-    <AssemblyName>$(Id).$(Version)</AssemblyName>
+    <AssemblyName>$(Id)</AssemblyName>
+    <TargetName Condition="'$(Version)' != ''">$(AssemblyName).$(Version)</TargetName>
   </PropertyGroup>
 
   <!--
@@ -107,10 +108,18 @@
   -->
 
   <Target Name="EstablishNuGetPaths" DependsOnTargets="$(VersionDependsOn)">
-  <PropertyGroup>
-    <NuGetOutputPath>$(TargetPath)</NuGetOutputPath>
-    <NuGetSymbolsOutputPath>$(TargetDir)$(TargetName).symbols$(TargetExt)</NuGetSymbolsOutputPath>
-  </PropertyGroup>
+    <PropertyGroup>
+      <TargetName>$(AssemblyName).$(Version)</TargetName>
+      <TargetFileName>$(TargetName)$(TargetExt)</TargetFileName>
+      <TargetPath>$(TargetDir)$(TargetFileName)</TargetPath>
+      <NuGetOutputPath>$(TargetDir)$(TargetName)$(TargetExt)</NuGetOutputPath>
+      <NuGetSymbolsOutputPath>$(TargetDir)$(TargetName).symbols$(TargetExt)</NuGetSymbolsOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <IntermediateAssembly Remove="@(IntermediateAssembly)"></IntermediateAssembly>
+      <IntermediateAssembly Include="$(IntermediateOutputPath)$(TargetFileName)"/>
+      <!--<IntermediateAssembly Include="$(IntermediateOutputPath)$(TargetName).symbols$(TargetExt)"/>-->
+    </ItemGroup>
   </Target>
 
   <!--
@@ -164,73 +173,8 @@
     ============================================================
     -->
     <PropertyGroup>
-      <PrepareForBuildDependsOn>EstablishNuGetPaths</PrepareForBuildDependsOn>
+      <PrepareForBuildDependsOn>EstablishNuGetPaths;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     </PropertyGroup>
-    <Target Name="PrepareForBuild"
-            DependsOnTargets="$(PrepareForBuildDependsOn)">
-    </Target>
-
-  <!--
-    ============================================================
-                                        AssignProjectConfiguration
-
-    Assigns the appropriate configuration to each project in the list of project references passed in.
-    Adds to the project references passed in any project references implied by dependencies expressed in the solution file, if any.
-
-        [IN]
-        @(ProjectReference) - the list of all project references
-
-        [OUT]
-        @(ProjectReferenceWithConfiguration) - the list of project references (MSBuild and potentially VSIP projects)
-                                               with metadata values FullConfiguration, Configuration, Platform,
-                                               SetConfiguration, and SetPlatform
-    ============================================================
-    -->
-  <Target
-      Name="AssignProjectConfiguration"
-      Condition="'$(CurrentSolutionConfigurationContents)' != '' or '@(ProjectReference)' != ''">
-
-    <PropertyGroup>
-      <OnlyReferenceAndBuildProjectsEnabledInSolutionConfiguration Condition="'$(OnlyReferenceAndBuildProjectsEnabledInSolutionConfiguration)' == ''">true</OnlyReferenceAndBuildProjectsEnabledInSolutionConfiguration>
-      <ShouldUnsetParentConfigurationAndPlatform Condition="'$(ShouldUnsetParentConfigurationAndPlatform)' == '' and ('$(BuildingInsideVisualStudio)' == 'true' or '$(BuildingSolutionFile)' == 'true')">true</ShouldUnsetParentConfigurationAndPlatform>
-      <ShouldUnsetParentConfigurationAndPlatform Condition="'$(ShouldUnsetParentConfigurationAndPlatform)' == ''">false</ShouldUnsetParentConfigurationAndPlatform>
-
-      <!-- Web Application projects can "secretly" reference Silverlight projects, which can take project dependencies on that same Web Application.  If the project 
-           dependencies are promoted to project references, this ends up creating a situation where we have a circular reference between the two projects.  We don't 
-           want this to happen, so just turn off synthetic project reference generation for Silverlight projects. -->
-      <AddSyntheticProjectReferencesForSolutionDependencies Condition="'$(AddSyntheticProjectReferencesForSolutionDependencies)' == '' and '$(TargetFrameworkIdentifier)' == 'Silverlight'">false</AddSyntheticProjectReferencesForSolutionDependencies>
-
-      <!-- Inside VS, we do not need to add synthetic references, as VS already organizes the build per any solution-level dependencies; we only do this on the command line-->
-      <AddSyntheticProjectReferencesForSolutionDependencies Condition="'$(AddSyntheticProjectReferencesForSolutionDependencies)' == '' and '$(BuildingInsideVisualStudio)' != 'true'">true</AddSyntheticProjectReferencesForSolutionDependencies>
-    </PropertyGroup>
-
-    <!-- Assign a project configuration to each project reference if we're building a solution file. -->
-    <AssignProjectConfiguration
-        ProjectReferences="@(ProjectReference)"
-        CurrentProject="$(MSBuildProjectFullPath)"
-        CurrentProjectConfiguration="$(Configuration)"
-        CurrentProjectPlatform="$(Platform)"
-        DefaultToVcxPlatformMapping="$(DefaultToVcxPlatformMapping)"
-        VcxToDefaultPlatformMapping="$(VcxToDefaultPlatformMapping)"
-        OutputType="$(OutputType)"
-        ResolveConfigurationPlatformUsingMappings="false"
-        SolutionConfigurationContents="$(CurrentSolutionConfigurationContents)"
-        AddSyntheticProjectReferencesForSolutionDependencies="$(AddSyntheticProjectReferencesForSolutionDependencies)"
-        OnlyReferenceAndBuildProjectsEnabledInSolutionConfiguration = "$(OnlyReferenceAndBuildProjectsEnabledInSolutionConfiguration)"
-        ShouldUnsetParentConfigurationAndPlatform = "$(ShouldUnsetParentConfigurationAndPlatform)" >
-
-      <Output TaskParameter="AssignedProjects" ItemName="ProjectReferenceWithConfiguration"/>
-      <Output TaskParameter="UnassignedProjects" ItemName="ProjectReferenceWithConfiguration"/>
-    </AssignProjectConfiguration>
-
-    <ItemGroup>
-      <ProjectReferenceWithConfiguration>
-        <BuildReference Condition="'%(ProjectReferenceWithConfiguration.BuildReference)' == ''">true</BuildReference>
-        <ReferenceOutputAssembly Condition="'%(ProjectReferenceWithConfiguration.ReferenceOutputAssembly)' == ''">true</ReferenceOutputAssembly>
-      </ProjectReferenceWithConfiguration>
-    </ItemGroup>
-  </Target>
-
 
   <!--
     ===================================================================================================================
@@ -328,28 +272,6 @@
         </ItemGroup>
     </Target>
 
-  <!--
-    ===================================================================================================================
-    ResolveProjectReferencesDesignTime
-    ===================================================================================================================
-
-    This target is called by Visual Studio to get the project references
-
-    OUTPUTS:
-        @(_ResolvedProjectReference)         The resolved project references
-
-    =================================================================================================================== -->
-
-  <Target Name="ResolveProjectReferencesDesignTime"
-          Returns="@(_ResolvedProjectReference)">
-    <ItemGroup>
-      <_ResolvedProjectReference Include="@(ProjectReference->'%(FullPath)')"
-                                 Condition="Exists('%(FullPath)')">
-        <OriginalItemSpec>%(Identity)</OriginalItemSpec>
-        <ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
-      </_ResolvedProjectReference>
-    </ItemGroup>
-  </Target>
 
   <!--
     ===================================================================================================================
@@ -607,9 +529,7 @@
                   @(File)"
           Outputs="$(NuGetOutputPath)"
           DependsOnTargets="GenerateNuSpec;PrepareForBuild">
-    <MakeDir Directories="$(OutDir)"
-             Condition="!Exists('$(OutDir)')" />
-    <NuGetPack OutputDirectory="$(OutDir)"
+    <NuGetPack OutputDirectory="$(IntermediateOutputPath)"
                NoPackageAnalysis="$(NoPackageAnalysis)"
                NoDefaultExcludes="$(NoDefaultExcludes)"
                Symbols="$(GenerateSymbolPackage)"
@@ -622,8 +542,8 @@
       
     <!-- It would be better if WrittenFiles would be output property of NuGetPack task. -->  
     <ItemGroup>
-      <FileWrites Include="$(NuGetOutputPath)" />
-      <FileWrites Include="$(NuGetSymbolsOutputPath)" Condition=" '$(GenerateSymbolPackage)' == 'true' " />
+      <FileWrites Include="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" />
+      <FileWrites Include="$(IntermediateOutputPath)$(TargetName).symbols$(TargetExt)" Condition=" '$(GenerateSymbolPackage)' == 'true' " />
     </ItemGroup>
   
   </Target>
@@ -977,103 +897,15 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    ===================================================================================================================
-    Clean, Build, Rebuild
-    ===================================================================================================================
-
-    These are the standard targets to clean, build and rebuild a NuGet package.
-
-    =================================================================================================================== -->
-
-  <PropertyGroup>
-    <BuildDependsOn>
-      BeforeBuild;
-      CoreBuild;
-      AfterBuild
-    </BuildDependsOn>
-  </PropertyGroup>
-
-  <Target Name="Build"
-          DependsOnTargets="$(BuildDependsOn)" 
-          Returns="@(_NuGetOutputFile)" />
-
-  <!--
-    ============================================================
-                                        BeforeBuild
-
-    Redefine this target in your project in order to run tasks just before Build
-    ============================================================
-    -->
-  <Target Name="BeforeBuild"/>
-
-  <!--
-    ============================================================
-                                        AfterBuild
-
-    Redefine this target in your project in order to run tasks just after Build
-    ============================================================
-    -->
-  <Target Name="AfterBuild"/>
   
-  <!--
-    ============================================================
-                                        CoreBuild
+  <!-- Define CoreCompile and CreateManifestResourceNames targets, which are misssing in Microsoft.Common.targets -->
+  <Target Name="CoreCompile" DependsOnTargets="CreatePackage" />
 
-    The core build step calls each of the build targets.
-    ============================================================
-    -->
-  <PropertyGroup>
-    <CoreBuildDependsOn>
-      CreatePackage;
-      IncrementalClean
-    </CoreBuildDependsOn>
-  </PropertyGroup>
+  <Target Name="CreateManifestResourceNames" Condition="false" />
   
-  <Target Name="CoreBuild"
-          DependsOnTargets="$(CoreBuildDependsOn)" 
-          Returns="@(_NuGetOutputFile)">
-    <Message Text="$(MSBuildProjectName) -> $(NuGetOutputPath)"
-             Importance="high" />
-
-    <ItemGroup>
-      <_NuGetOutputFile Include="$(NuGetOutputPath)" />
-      <_NuGetOutputFile Include="$(NuGetSymbolsOutputPath)" Condition=" '$(GenerateSymbolPackage)' == 'true' " />
-    </ItemGroup>
-  </Target>
-
+  <!-- Override ResolveAssemblyReferences because we don't support assembly references for time of being. -->
+  <Target Name="ResolveAssemblyReferences" Condition="false" />
   
-  <PropertyGroup>
-    <RebuildDependsOn>
-      BeforeRebuild;
-      Clean;
-      Build;
-      AfterRebuild
-    </RebuildDependsOn>
-  </PropertyGroup>
-
-  
-  <Target Name="Rebuild"
-          DependsOnTargets="$(RebuildDependsOn)"
-          Returns="@(_NuGetOutputFile)" />
   <Import Project="$(CustomAfterNuProjTargets)" Condition="'$(CustomAfterNuProjTargets)' != '' and Exists('$(CustomAfterNuProjTargets)')"/>
-
-  <!--
-    ============================================================
-                                        BeforeRebuild
-
-    Redefine this target in your project in order to run tasks just before Rebuild
-    ============================================================
-    -->
-  <Target Name="BeforeRebuild"/>
-
-  <!--
-    ============================================================
-                                        AfterRebuild
-
-    Redefine this target in your project in order to run tasks just after Rebuild
-    ============================================================
-    -->
-  <Target Name="AfterRebuild"/>
   
 </Project>
