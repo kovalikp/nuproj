@@ -48,13 +48,13 @@
   <Target Name="BeforeBuild">
   </Target>
   -->
-  <Target Name="Clean">
+  <Target Name="AfterClean">
     <Error Text="Dependency Target Called: Clean" />
   </Target>
-  <Target Name="Build">
+  <Target Name="AfterBuild">
     <Error Text="Dependency Target Called: Build" />
   </Target>
-  <Target Name="Rebuild">
+  <Target Name="AfterRebuild">
     <Error Text="Dependency Target Called: Rebuild" />
   </Target>
 </Project>

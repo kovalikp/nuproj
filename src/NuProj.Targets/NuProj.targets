@@ -47,6 +47,8 @@
     <TargetExt>.nupkg</TargetExt>
     <AssemblyName>$(Id)</AssemblyName>
     <TargetName Condition="'$(Version)' != ''">$(AssemblyName).$(Version)</TargetName>
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.6.1</TargetFrameworkVersion>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 
   <!--
@@ -469,7 +471,7 @@
 
         @(Dependency)                  (Optional) The NuGet package dependencies
         @(FrameworkReference)          (Optional) Framework assembly references
-        @(Reference)                   (Optional) The assembly references
+        @(AssemblyReference)           (Optional) The assembly references
         @(File)                        (Optional) The files to be packaged
 
     =================================================================================================================== -->
@@ -501,7 +503,7 @@
                     Tags="$(Tags)"
                     DevelopmentDependency="$(DevelopmentDependency)"
                     Dependencies="@(Dependency)"
-                    References="@(Reference)"
+                    References="@(AssemblyReference)"
                     FrameworkReferences="@(FrameworkReference)"
                     Files="@(PackageFile)">
       <Output TaskParameter="FilesWritten" ItemName="FileWrites"/>
@@ -902,9 +904,6 @@
   <Target Name="CoreCompile" DependsOnTargets="CreatePackage" />
 
   <Target Name="CreateManifestResourceNames" Condition="false" />
-  
-  <!-- Override ResolveAssemblyReferences because we don't support assembly references for time of being. -->
-  <Target Name="ResolveAssemblyReferences" Condition="false" />
   
   <Import Project="$(CustomAfterNuProjTargets)" Condition="'$(CustomAfterNuProjTargets)' != '' and Exists('$(CustomAfterNuProjTargets)')"/>
   
