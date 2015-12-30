@@ -182,10 +182,7 @@ namespace NuProj.Tests
             var properties = MSBuild.Properties.Default.AddRange(MSBuild.Properties.BuildingInsideVisualStudio);
 
             // we need to build dependency first
-            var dependencyPath = Assets.GetScenarioFilePath(
-                "Dependency_IsNotBuilt_WhenBuildingInsideVisualStudio",
-                @"ClassLibrary\ClassLibrary.csproj");
-            (await MSBuild.ExecuteAsync(dependencyPath, target, properties)).AssertSuccessfulBuild();
+            await Scenario.RestoreAndExecuteAsync("ClassLibrary".ToSolutionTarget(target), properties);
 
             properties = properties.Add("CheckTarget", "true");
             var projectPath = Assets.GetScenarioFilePath(

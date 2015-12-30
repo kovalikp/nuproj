@@ -13,7 +13,7 @@ namespace NuProj.Tests
         [Fact]
         public async Task PackageSpecific_MicrosoftBclBuild()
         {
-            await Scenario.RestoreAndBuildAsync(projectName: "TestLibrary");
+            await Scenario.RestoreAndExecuteAsync("TestLibrary".ToSolutionTarget());
             var package = await Scenario.RestoreAndBuildSinglePackageAsync(packageId: "Test", 
                 properties: MSBuild.Properties.BuildingInsideVisualStudio);
         }
