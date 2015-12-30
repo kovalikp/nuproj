@@ -13,6 +13,20 @@ namespace NuProj.Tests.Infrastructure
     public static class Scenario
     {
         /// <summary>
+        /// Executes package restore and builds the test solution, asserting build success.
+        /// </summary>
+        /// <param name="scenarioName">The name of the scenario to build. If omitted, it will be the name of the calling method.</param>
+        /// <param name="projectName">The leaf name of the project to be built or rebuilt.</param>
+        /// <param name="properties">Build properties to pass to MSBuild.</param>
+        public static async Task RestoreAndBuildAsync([CallerMemberName] string scenarioName = null, string projectName = null, IDictionary<string, string> properties = null, ITestOutputHelper testLogger = null)
+        {
+            var projectFullPath = Assets.GetScenarioSolutionPath(scenarioName);
+            var projectDirectory = Path.GetDirectoryName(projectFullPath);
+            var result = await MSBuild.RebuildAsync(projectFullPath, projectName, properties, testLogger);
+            result.AssertSuccessfulBuild();
+        }
+        
+        /// <summary>
         /// Executes package restore and builds the test solution.
         /// </summary>
         /// <param name="scenarioName">The name of the scenario to build. If omitted, it will be the name of the calling method.</param>

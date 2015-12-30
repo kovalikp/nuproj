@@ -176,7 +176,7 @@ namespace NuProj.Tests
         [Theory]
         [InlineData("Build")]
         [InlineData("Clean")]
-        //[InlineData("Rebuild")]
+        [InlineData("Rebuild")]
         public async Task Dependency_IsNotBuilt_WhenBuildingInsideVisualStudio(string target)
         {
             var properties = MSBuild.Properties.Default.AddRange(MSBuild.Properties.BuildingInsideVisualStudio);
@@ -185,8 +185,9 @@ namespace NuProj.Tests
             var dependencyPath = Assets.GetScenarioFilePath(
                 "Dependency_IsNotBuilt_WhenBuildingInsideVisualStudio",
                 @"ClassLibrary\ClassLibrary.csproj");
-            await MSBuild.ExecuteAsync(dependencyPath, target, properties);
+            (await MSBuild.ExecuteAsync(dependencyPath, target, properties)).AssertSuccessfulBuild();
 
+            properties = properties.Add("CheckTarget", "true");
             var projectPath = Assets.GetScenarioFilePath(
                 "Dependency_IsNotBuilt_WhenBuildingInsideVisualStudio",
                 @"NuGetPackage\NuGetPackage.nuproj");
