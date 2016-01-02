@@ -186,7 +186,7 @@
     This target returns the closure of all project references.
 
     INPUTS:
-        @(ProjectReferenceWithConfiguration)  The project references that actually exist.
+        @(_MSBuildProjectReferenceExistent)   The project references that actually exist.
 
     OUTPUTS:
         @(_ProjectReferenceClosure)           The closure of all references. Doesn't include duplicates.
@@ -194,8 +194,8 @@
     =================================================================================================================== -->
 
   <Target Name="_NuProjGetProjectClosure"
-          DependsOnTargets="AssignProjectConfiguration"
-          Inputs="%(ProjectReferenceWithConfiguration.Identity)"
+          DependsOnTargets="AssignProjectConfiguration;_SplitProjectReferencesByFileExistence"
+          Inputs="%(_MSBuildProjectReferenceExistent.Identity)"
           Outputs="fake"
           Returns="@(_ProjectReferenceClosure)">
     <!-- First let's make sure that the project references have been fully built,
@@ -203,14 +203,14 @@
 
     <MSBuild Targets="Build"
              Condition="'$(BuildProjectReferences)' == 'true'"
-             Projects="@(ProjectReferenceWithConfiguration)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Projects="@(_MSBuildProjectReferenceExistent)"
+             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform)"
              ContinueOnError="WarnAndContinue"/>
 
     <!-- Get closure of indirect references -->
-    <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
              Targets="_NuProjGetProjectClosure"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform)"
              ContinueOnError="WarnAndContinue">
       <Output TaskParameter="TargetOutputs"
               ItemName="_ProjectReferenceClosureWithDuplicates" />
@@ -224,14 +224,14 @@
 
     <ItemGroup>
       <!-- Remove references that are also direct references -->
-      <_ProjectReferenceClosureWithoutMetadata Remove="%(ProjectReferenceWithConfiguration.FullPath)" />
+      <_ProjectReferenceClosureWithoutMetadata Remove="%(_MSBuildProjectReferenceExistent.FullPath)" />
       <!-- We can now mark all the closure references as indirect -->
       <_ProjectReferenceClosure Include="@(_ProjectReferenceClosureWithoutMetadata)">
         <DependencyKind>Indirect</DependencyKind>
-        <PackageDirectory>%(ProjectReferenceWithConfiguration.PackageDirectory)</PackageDirectory>
+        <PackageDirectory>%(_MSBuildProjectReferenceExistent.PackageDirectory)</PackageDirectory>
       </_ProjectReferenceClosure>
       <!-- Now add the direct references, preserving metadata -->
-      <_ProjectReferenceClosure Include="@(ProjectReferenceWithConfiguration->'%(FullPath)')">
+      <_ProjectReferenceClosure Include="@(_MSBuildProjectReferenceExistent->'%(FullPath)')">
         <DependencyKind>Direct</DependencyKind>
       </_ProjectReferenceClosure>
     </ItemGroup>
