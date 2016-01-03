@@ -47,7 +47,7 @@
     <TargetExt>.nupkg</TargetExt>
     <AssemblyName>$(Id)</AssemblyName>
     <TargetName Condition="'$(Version)' != ''">$(AssemblyName).$(Version)</TargetName>
-    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <DebugSymbols>false</DebugSymbols>
     <_SymbolsPackageProduced>false</_SymbolsPackageProduced>
     <_SymbolsPackageProduced Condition="'$(GenerateSymbolPackage)'=='true'">true</_SymbolsPackageProduced>
@@ -486,7 +486,7 @@
 
         @(Dependency)                  (Optional) The NuGet package dependencies
         @(FrameworkReference)          (Optional) Framework assembly references
-        @(AssemblyReference)           (Optional) The assembly references
+        @(Reference)                   (Optional) The assembly references
         @(File)                        (Optional) The files to be packaged
 
     =================================================================================================================== -->
@@ -518,7 +518,7 @@
                     Tags="$(Tags)"
                     DevelopmentDependency="$(DevelopmentDependency)"
                     Dependencies="@(Dependency)"
-                    References="@(AssemblyReference)"
+                    References="@(LibraryReference)"
                     FrameworkReferences="@(FrameworkReference)"
                     Files="@(PackageFile)">
       <Output TaskParameter="FilesWritten" ItemName="FileWrites"/>
