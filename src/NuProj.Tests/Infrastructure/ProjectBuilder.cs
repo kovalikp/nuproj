@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Execution;
 
 namespace NuProj.Tests.Infrastructure
 {

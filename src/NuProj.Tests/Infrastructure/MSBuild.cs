@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
-
+using Microsoft.VisualStudio.Setup.Configuration;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +17,8 @@ namespace NuProj.Tests.Infrastructure
 {
     public static class MSBuild
     {
+        private static string _nodeExeLocation;
+
         public static Task<BuildResultAndLogs> RebuildAsync(string projectPath, string projectName = null, IDictionary<string, string> properties = null, ITestOutputHelper testLogger = null)
         {
             var target = string.IsNullOrEmpty(projectName) ? "Rebuild" : projectName.Replace('.', '_') + ":Rebuild";
@@ -42,6 +45,8 @@ namespace NuProj.Tests.Infrastructure
             var logLines = new List<string>();
             var parameters = new BuildParameters
             {
+                DefaultToolsVersion = "15.0",
+                NodeExeLocation = NodeExeLocation,
                 Loggers = new List<ILogger>
                 {
                     new ConsoleLogger(LoggerVerbosity.Detailed, logLines.Add, null, null),
@@ -69,6 +74,11 @@ namespace NuProj.Tests.Infrastructure
             return new BuildResultAndLogs(result, logger.LogEvents, logLines);
         }
 
+        public static string GetRoslynTargetsPath()
+        {
+            return Path.Combine(Path.GetDirectoryName(NodeExeLocation), "Roslyn");
+        }
+
         /// <summary>
         /// Builds a project.
         /// </summary>
@@ -83,6 +93,7 @@ namespace NuProj.Tests.Infrastructure
             var logLines = new List<string>();
             var parameters = new BuildParameters
             {
+                NodeExeLocation = NodeExeLocation,
                 Loggers = new List<ILogger>
                 {
                     new ConsoleLogger(LoggerVerbosity.Detailed, logLines.Add, null, null),
@@ -116,6 +127,16 @@ namespace NuProj.Tests.Infrastructure
             var tcs = new TaskCompletionSource<BuildResult>();
             submission.ExecuteAsync(s => tcs.SetResult(s.BuildResult), null);
             return tcs.Task;
+        }
+
+        public static string NodeExeLocation => _nodeExeLocation ?? (_nodeExeLocation = GetNodeExeLocation());
+
+        private static string GetNodeExeLocation()
+        {
+            var configuration = new SetupConfiguration();
+            var instance = configuration.GetInstanceForCurrentProcess();
+            var vs2017Path = instance.GetInstallationPath();
+            return Path.Combine(vs2017Path, "MSBuild", "15.0", "Bin", "MSBuild.exe");
         }
 
         /// <summary>
@@ -200,6 +221,7 @@ namespace NuProj.Tests.Infrastructure
             /// </summary>
             private void AssertNoTargetsExecutedTwice()
             {
+                var messageBuilder = new StringBuilder();
                 var projectPathToId = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
                 var configurations = new Dictionary<long, ProjectStartedEventArgs>();
                 foreach (var projectStarted in this.LogEvents.OfType<ProjectStartedEventArgs>())
@@ -224,8 +246,7 @@ namespace NuProj.Tests.Infrastructure
                             var inFirstNotSecond = globalPropertiesFirst.Except(globalPropertiesSecond);
                             var inSecondNotFirst = globalPropertiesSecond.Except(globalPropertiesFirst);
 
-                            var messageBuilder = new StringBuilder();
-                            messageBuilder.AppendLine($@"Project ""{projectStarted.ProjectFile}"" was built twice. ");
+                            messageBuilder.AppendLine($@"Project ""{projectStarted.ProjectFile}"" target ""{projectStarted.TargetNames}"" was built twice. ");
                             messageBuilder.Append($@"The first build request came from ""{originalRequestingProject}""");
                             if (inFirstNotSecond.IsEmpty)
                             {
@@ -246,13 +267,17 @@ namespace NuProj.Tests.Infrastructure
                                 messageBuilder.AppendLine($" and defined these unique global properties: {string.Join(",", inSecondNotFirst)}");
                             }
 
-                            Assert.False(true, messageBuilder.ToString());
+                            messageBuilder.AppendLine();
                         }
                     }
                     else
                     {
                         projectPathToId.Add(projectStarted.ProjectFile, projectStarted.BuildEventContext.ProjectInstanceId);
                     }
+                }
+                if (messageBuilder.Length > 0)
+                {
+                    Assert.False(true, messageBuilder.ToString());
                 }
             }
 

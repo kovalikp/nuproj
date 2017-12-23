@@ -1,14 +1,20 @@
 ﻿{
   "dependencies": {
+    "Microsoft.Build": "15.1.1012",
+    "Microsoft.Build.Framework": "15.1.1012",
+    "microsoft.build.Runtime": "15.1.1012",
+    "Microsoft.Build.Tasks.Core": "15.1.1012",
+    "Microsoft.Build.Utilities.Core": "15.1.1012",
+    "Microsoft.VisualStudio.Setup.Configuration.Interop": "1.11.2290",
     "Microsoft.Web.Xdt": "2.1.1",
     "Nerdbank.GitVersioning": "1.5.46",
     "NuGet.Packaging": "4.0.0",
-    "System.Collections.Immutable": "1.1.37",
+    "System.Threading.Tasks.Dataflow": "4.5.24",
     "xunit": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0"
   },
   "frameworks": {
-    "net451": {}
+    "net46": {}
   },
   "runtimes": {
     "win": {}

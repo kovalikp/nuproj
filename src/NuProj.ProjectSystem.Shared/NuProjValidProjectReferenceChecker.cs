@@ -3,33 +3,16 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
-#if Dev12
-using Microsoft.Collections.Immutable;
-#else
 using System.Collections.Immutable;
-#endif
 using Microsoft.VisualStudio.ProjectSystem;
-#if Dev12 || Dev14
-using Microsoft.VisualStudio.ProjectSystem.Designers;
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
-#else
 using Microsoft.VisualStudio.ProjectSystem.References;
-#endif
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace NuProj.ProjectSystem
 {
     [Export(typeof(IValidProjectReferenceChecker))]
-#if Dev12 || Dev14
-    [OrderPrecedence(1000)]
-#else
     [Order(1000)]
-#endif
-#if Dev12
-    [PartMetadata(ProjectCapabilities.Requires, NuProjCapabilities.NuProj)]
-#else
     [AppliesTo(NuProjCapabilities.NuProj)]
-#endif
     internal sealed class NuProjValidProjectReferenceChecker : IValidProjectReferenceChecker
     {
         // This import must be present so that this part applies to a specific project.

@@ -1,9 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
-#if Dev12 || Dev14
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
-#endif
 
 namespace NuProj.ProjectSystem
 {
@@ -11,11 +8,7 @@ namespace NuProj.ProjectSystem
     /// Provides rule-based property access.
     /// </summary>
     [Export]
-#if Dev12
-    [PartMetadata(ProjectCapabilities.Requires, NuProjCapabilities.NuProj)]
-#else
     [AppliesTo(NuProjCapabilities.NuProj)]
-#endif
     internal partial class NuProjProjectProperties : StronglyTypedPropertyAccess
     {
         /// <summary>

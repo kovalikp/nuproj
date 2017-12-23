@@ -3,18 +3,11 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.VisualStudio.ProjectSystem;
-#if Dev12 || Dev14
-using Microsoft.VisualStudio.ProjectSystem.Utilities;
-#endif
 
 namespace NuProj.ProjectSystem
 {
     [Export]
-#if Dev12
-    [PartMetadata(ProjectCapabilities.Requires, NuProjCapabilities.NuProj)]
-#else
     [AppliesTo(NuProjCapabilities.NuProj)]
-#endif
     internal sealed class NuProjConfiguredProject
     {
         [Import]

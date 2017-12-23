@@ -28,7 +28,7 @@ namespace NuProj.Tests.Infrastructure
 
         public static string NuGetToolPath
         {
-            get { return Environment.ExpandEnvironmentVariables(@"%UserProfile%\.nuget\packages\NuGet.CommandLine\3.5.0\tools"); }
+            get { return Environment.ExpandEnvironmentVariables(@"%UserProfile%\.nuget\packages\NuGet.CommandLine\4.1.0\tools"); }
         }
 
         public static string NuGetExePath

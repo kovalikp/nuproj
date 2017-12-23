@@ -29,7 +29,7 @@
         <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
                  Targets="_NuProjGetProjectClosure"
                  BuildInParallel="$(BuildInParallel)"
-                 Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform)"
+                 Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform);"
                  Condition="'%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != '' and '@(_MSBuildProjectReferenceExistent)' != ''"
                  ContinueOnError="WarnAndContinue"
                  RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
